@@ -25,6 +25,11 @@ resources:
 ## Enable persistence using Persistent Volume Claims
 ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
 ##
+ceph:
+  enabled: true
+  masterStorageId: print-server-redis-master
+  sentinelStorageId: print-server-redis-sentinel
+
 persistentVolume:
   ## If true, redis will create/use a Persistent Volume Claim
   ## If false, use emptyDir

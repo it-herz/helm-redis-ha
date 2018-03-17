@@ -35,6 +35,10 @@ spec:
           volumeMounts:
             - mountPath: /redis-master-data
               name: data
+              {{- if .Values.ceph.enabled }}
+              subPath: "{{ .Values.ceph.sentinelStorageId }}"
+              {{- end }}
+
         - name: sentinel
           image: {{ .Values.redis_image }}
           resources:
@@ -46,9 +50,18 @@ spec:
             - containerPort: 26379
       volumes:
       - name: data
-      {{- if .Values.persistentVolume.enabled }}
-        persistentVolumeClaim:
-          claimName: {{ if .Values.persistentVolume.existingClaim }}{{ .Values.persistentVolume.existingClaim }}{{- else }}{{ template "name" . }}{{- end }}
+      {{- if .Values.ceph.enabled }}
+        flexVolume:
+          driver: rook.io/rook
+          fsType: ceph
+          options:
+            fsName: data
+            clusterName: rook
       {{- else }}
-        emptyDir: {}
+        {{- if .Values.persistentVolume.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ if .Values.persistentVolume.existingClaim }}{{ .Values.persistentVolume.existingClaim }}{{- else }}{{ template "name" . }}{{- end }}
+        {{- else }}
+          emptyDir: {}
+        {{- end -}}
       {{- end -}}
